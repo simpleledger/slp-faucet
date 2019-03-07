@@ -1,5 +1,5 @@
 {
-  "name": "simple-nodejs-weather-app",
+  "name": "simple-slp-faucet",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,17 +9,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bmorelli25/simple-nodejs-weather-app.git"
+    "url": "git+https://github.com/simpleledger/simple-slp-faucet.git"
   },
-  "author": "brandon morelli",
-  "license": "ISC",
+  "author": "James Cramer",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bmorelli25/simple-nodejs-weather-app/issues"
+    "url": "https://github.com/simpleledger/simple-slp-faucet/issues"
   },
-  "homepage": "https://github.com/bmorelli25/simple-nodejs-weather-app#readme",
+  "homepage": "https://github.com/simpleledger/simple-slp-faucet#readme",
   "dependencies": {
     "body-parser": "^1.17.2",
     "express": "^4.15.3",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "slp-sdk": "^3.0.3",
+    "ejs": "^2.6.1"
   }
 }

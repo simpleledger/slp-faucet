@@ -3,8 +3,12 @@ Simplest Node.js SLP Faucet
 
 * Use Electron Cash SLP or other SLP wallet to store faucet supply, then export a single private key holding the tokens.
 
-* Set environment variables:
-    - `WIF`, `TOKENID`, `TOKENQTY`
+* Create a new `.env` file with the following environment variables:
+```
+WIF=______
+TOKENID=_____
+TOKENQTY=____
+```
 
 * Run the web app locally:
 ```

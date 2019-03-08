@@ -1,17 +1,20 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const bodyParser = require('body-parser');
-//const request = require('request');
 const app = express()
 const SLPSDK = require("slp-sdk/lib/SLP");
-let SLP
+let SLP;
 let NETWORK = 'mainnet';
 if (NETWORK === `mainnet`)
   SLP = new SLPSDK({ restURL: `https://rest.bitcoin.com/v2/` })
 else SLP = new SLPSDK({ restURL: `https://trest.bitcoin.com/v2/` })
+let slpjs = require('slpjs');
 
-const wif = "L2ACRKgLwqL4uZEvjarvfhGnRWTXcoU8q5VHhPEhAtoRyHs8veqU";                 //process.env.WIF;
-const tokenId = "fa6c74c52450fc164e17402a46645ce494a8a8e93b1383fa27460086931ef59f"; //process.env.TOKENID;
-const tokenQty = 1;     //process.env.TOKENQTY;
+const wif = process.env.WIF;
+const tokenId = process.env.TOKENID;
+const tokenQty = parseInt(process.env.TOKENQTY);
 const changeAddr = SLP.Address.toSLPAddress(SLP.ECPair.toCashAddress(SLP.ECPair.fromWIF(wif)));
 
 app.use(express.static('public'));
@@ -25,11 +28,21 @@ app.get('/', function (req, res) {
 app.post('/', async function (req, res) {
   let address = req.body.address;
 
+  try {
+    if(!slpjs.Utils.isSlpAddress(address)) {
+      res.render('index', { txid: null, error: "Not a SLP Address." });
+      return;
+    }
+  } catch(error) {
+    res.render('index', { txid: null, error: "Not a SLP Address." });
+    return;
+  }
+ 
   const slpConfig = {
-    changeAddr,
-    wif,
-    address,
-    changeAddr,
+    fundingAddress: changeAddr,
+    fundingWif: wif,
+    tokenReceiverAddress: address,
+    bchChangeReceiverAddress: changeAddr,
     tokenId: tokenId,
     amount: tokenQty
   }

@@ -5,13 +5,15 @@ Simplest Node.js SLP Faucet
 
 * Create a new `.env` file with the following environment variables:
 ```
-WIF=______
+MNEMONIC=______
 TOKENID=_____
 TOKENQTY=____
 ```
 
 * Run the web app locally:
 ```
+npm install
+tsc
 node server.js
 // Now open your browser and visit: localhost:3000
 ```

@@ -1,5 +1,4 @@
-# simplest-slp-faucet
-Simplest Node.js SLP Faucet
+# Simplest SLP Faucet
 
 * Use Electron Cash SLP or other SLP wallet to store faucet supply, then export a single private key holding the tokens.
 

@@ -1,16 +1,16 @@
-import BITBOX from 'bitbox-sdk/lib/bitbox-sdk';
-let SLPSDK = require("slp-sdk/lib/SLP");
-let SLP: BITBOX;
+import BITBOXSDK from 'bitbox-sdk/lib/bitbox-sdk';
+let BITBOX: BITBOXSDK;
 let NETWORK = 'mainnet';
 if (NETWORK === `mainnet`)
-	SLP = new SLPSDK({ restURL: `https://rest.bitcoin.com/v2/` });
-else SLP = new SLPSDK({ restURL: `https://trest.bitcoin.com/v2/` });
+    BITBOX = new BITBOXSDK({ restURL: `https://rest.bitcoin.com/v2/` });
+else BITBOX = new BITBOXSDK({ restURL: `https://trest.bitcoin.com/v2/` });
 import * as slpjs from 'slpjs';
 import BigNumber from 'bignumber.js';
+import { Utils } from 'slpjs';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 const getRawTransactions = async function(txids: string[]) {
-	let res = await SLP.RawTransactions.getRawTransaction(txids);
+	let res = await BITBOX.RawTransactions.getRawTransaction(txids);
 	await sleep(1000);
 	return res;
 }
@@ -22,17 +22,18 @@ export class CoinSplitter {
     network: slpjs.BitboxNetwork;
 
     constructor(mnemonic: string) {
-        let masterNode = SLP.HDNode.fromSeed(SLP.Mnemonic.toSeed(mnemonic!)).derivePath("m/44'/245'/0'");
+        let masterNode = BITBOX.HDNode.fromSeed(BITBOX.Mnemonic.toSeed(mnemonic!)).derivePath("m/44'/245'/0'");
         this.addresses = [];
         this.wifs = {};
         for(let i = 0; i < 18; i++) {
             let childNode = masterNode.derivePath("0/" + i);
-            let address = slpjs.Utils.toSlpAddress(SLP.ECPair.toCashAddress(SLP.ECPair.fromWIF(SLP.HDNode.toWIF(childNode))))
-            this.wifs[address] = SLP.HDNode.toWIF(childNode);
+            let address = slpjs.Utils.toSlpAddress(BITBOX.ECPair.toCashAddress(BITBOX.ECPair.fromWIF(BITBOX.HDNode.toWIF(childNode))))
+            this.wifs[address] = BITBOX.HDNode.toWIF(childNode);
             this.addresses.push(address);
         }
-        this.validator = new slpjs.LocalValidator(SLP, getRawTransactions);
-        this.network = new slpjs.BitboxNetwork(SLP, this.validator);
+        this.validator = new slpjs.LocalValidator(BITBOX, getRawTransactions);
+
+        this.network = new slpjs.BitboxNetwork(BITBOX, this.validator);
     }
 
     async evenlyDistributeTokens(tokenId: string): Promise<string> {
@@ -66,13 +67,24 @@ export class CoinSplitter {
         return await this.network.simpleBchSend(Array(this.addresses.length).fill(totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length)), utxos, this.addresses, this.addresses[0]);
     }
 
-    async selectFaucetAddress() {
-        let a = await this.network.BITBOX.Address.details(this.addresses);
-        console.log("DETAILS", a);
+    async selectFaucetAddressForTokens(tokenId: string): Promise<{ address: string, balance: slpjs.SlpBalancesResult }> {
+        let a = await this.network.BITBOX.Address.details(this.addresses.map(a => { return Utils.toCashAddress(a); }));
+        //console.log("DETAILS", a);
         for(let i = 0; i < this.addresses.length; i++) {
-            if(a[i].unconfirmedBalanceSat === 0)
-                return this.addresses[i];
+            if(a[i].unconfirmedBalanceSat === 0 && a[i].balanceSat > 0) {
+                console.log("details address:", a[i].cashAddress);
+                console.log("addresses check:", Utils.toCashAddress(this.addresses[i]));
+                console.log("UnconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);
+                console.log("balanceSat:", a[i].balanceSat);
+                let b = (await this.network.getAllSlpBalancesAndUtxos(this.addresses[i]) as slpjs.SlpBalancesResult);
+                try {
+                    console.log("Token input amount: ", b.slpTokenBalances[tokenId].toNumber());
+                    if(b.slpTokenBalances[tokenId].isGreaterThan(0) === true)
+                        return { address: this.addresses[i], balance: b };
+                } catch(_) { }
+            }
         }
+        throw Error("There are no addresses with sufficient balance")
     }
 }
 

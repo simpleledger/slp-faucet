@@ -45,13 +45,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var SLPSDK = require("slp-sdk/lib/SLP");
-var SLP;
-var NETWORK = 'mainnet';
-if (NETWORK === "mainnet")
-    SLP = new SLPSDK({ restURL: "https://rest.bitcoin.com/v2/" });
-else
-    SLP = new SLPSDK({ restURL: "https://trest.bitcoin.com/v2/" });
 var dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 var express_1 = __importDefault(require("express"));
@@ -59,6 +52,7 @@ var body_parser_1 = __importDefault(require("body-parser"));
 var app = express_1.default();
 var slpjs = __importStar(require("slpjs"));
 var coinsplitter_1 = require("./coinsplitter");
+var bignumber_js_1 = __importDefault(require("bignumber.js"));
 var splitter = new coinsplitter_1.CoinSplitter(process.env.MNEMONIC);
 var faucetQty = parseInt(process.env.TOKENQTY);
 app.use(express_1.default.static('public'));
@@ -87,7 +81,7 @@ app.get('/distribute', function (req, res) {
 });
 app.post('/', function (req, res) {
     return __awaiter(this, void 0, void 0, function () {
-        var address, changeAddr, slpConfig, sendTxId, error_1, re;
+        var address, changeAddr, error_1, sendTxId, inputs, error_2, re;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -102,31 +96,32 @@ app.post('/', function (req, res) {
                         res.render('index', { txid: null, error: "Not a SLP Address." });
                         return [2 /*return*/];
                     }
-                    return [4 /*yield*/, splitter.selectFaucetAddress()];
+                    _a.label = 1;
                 case 1:
-                    changeAddr = _a.sent();
-                    slpConfig = {
-                        fundingAddress: changeAddr,
-                        fundingWif: splitter.wifs[changeAddr],
-                        tokenReceiverAddress: address,
-                        bchChangeReceiverAddress: changeAddr,
-                        tokenId: process.env.TOKENID,
-                        amount: faucetQty
-                    };
-                    _a.label = 2;
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, splitter.selectFaucetAddressForTokens(process.env.TOKENID)];
                 case 2:
-                    _a.trys.push([2, 4, , 5]);
-                    return [4 /*yield*/, SLP.TokenType1.send(slpConfig)];
+                    changeAddr = _a.sent();
+                    return [3 /*break*/, 4];
                 case 3:
-                    // @ts-ignore
-                    sendTxId = _a.sent();
-                    return [3 /*break*/, 5];
-                case 4:
                     error_1 = _a.sent();
-                    console.log(error_1);
+                    res.render('index', { txid: null, error: "Faucet is temporarily empty :(" });
+                    return [2 /*return*/];
+                case 4:
+                    _a.trys.push([4, 6, , 7]);
+                    inputs = [];
+                    inputs = inputs.concat(changeAddr.balance.slpTokenUtxos[process.env.TOKENID]).concat(changeAddr.balance.nonSlpUtxos);
+                    inputs.map(function (i) { return i.wif = splitter.wifs[changeAddr.address]; });
+                    return [4 /*yield*/, splitter.network.simpleTokenSend(process.env.TOKENID, new bignumber_js_1.default(faucetQty), inputs, address, changeAddr.address)];
+                case 5:
+                    sendTxId = _a.sent();
+                    return [3 /*break*/, 7];
+                case 6:
+                    error_2 = _a.sent();
+                    console.log(error_2);
                     res.render('index', { txid: null, error: "Server error." });
                     return [2 /*return*/];
-                case 5:
+                case 7:
                     console.log(sendTxId);
                     re = /^([A-Fa-f0-9]{2}){32,32}$/;
                     if (typeof sendTxId !== 'string' || !re.test(sendTxId)) {

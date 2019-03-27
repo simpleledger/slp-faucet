@@ -1,11 +1,3 @@
-import BITBOX from 'bitbox-sdk/lib/bitbox-sdk';
-let SLPSDK = require("slp-sdk/lib/SLP");
-let SLP: BITBOX;
-let NETWORK = 'mainnet';
-if (NETWORK === `mainnet`)
-	SLP = new SLPSDK({ restURL: `https://rest.bitcoin.com/v2/` });
-else SLP = new SLPSDK({ restURL: `https://trest.bitcoin.com/v2/` });
-
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -15,6 +7,7 @@ const app = express();
 
 import * as slpjs from 'slpjs';
 import { CoinSplitter } from './coinsplitter';
+import BigNumber from 'bignumber.js';
 
 let splitter = new CoinSplitter(process.env.MNEMONIC!);
 const faucetQty = parseInt(process.env.TOKENQTY!);
@@ -47,20 +40,20 @@ app.post('/', async function (req, res) {
 		return;
 	}
 
-	let changeAddr = await splitter.selectFaucetAddress();
-	
-	const slpConfig = {
-		fundingAddress: changeAddr,
-		fundingWif: splitter.wifs[changeAddr!],
-		tokenReceiverAddress: address,
-		bchChangeReceiverAddress: changeAddr,
-		tokenId: process.env.TOKENID!,
-		amount: faucetQty
+	let changeAddr: any;
+	try {
+		changeAddr = await splitter.selectFaucetAddressForTokens(process.env.TOKENID!);
+	} catch(error) {
+		res.render('index', { txid: null, error: "Faucet is temporarily empty :(" });
+		return;
 	}
+	
 	let sendTxId;
 	try {
-		// @ts-ignore
-		sendTxId = await SLP.TokenType1.send(slpConfig);
+		let inputs: slpjs.SlpAddressUtxoResult[] = [];
+		inputs = inputs.concat(changeAddr.balance.slpTokenUtxos[process.env.TOKENID!]).concat(changeAddr.balance.nonSlpUtxos)
+		inputs.map(i => i.wif = splitter.wifs[changeAddr.address]);
+		sendTxId = await splitter.network.simpleTokenSend(process.env.TOKENID!, new BigNumber(faucetQty), inputs, address, changeAddr.address);
 	} catch(error) {
 		console.log(error);
 		res.render('index', { txid: null, error: "Server error." });

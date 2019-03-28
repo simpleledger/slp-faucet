@@ -54,7 +54,7 @@ var slpjs = __importStar(require("slpjs"));
 var coinsplitter_1 = require("./coinsplitter");
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
 var sleep = function (ms) { return new Promise(function (resolve) { return setTimeout(resolve, ms); }); };
-var splitter = new coinsplitter_1.CoinSplitter(process.env.MNEMONIC);
+var slpFaucet = new coinsplitter_1.SlpFaucetHandler(process.env.MNEMONIC);
 var faucetQty = parseInt(process.env.TOKENQTY);
 app.use(express_1.default.static('public'));
 app.use(body_parser_1.default.urlencoded({ extended: true }));
@@ -69,13 +69,13 @@ app.get('/distribute', function (req, res) {
                 case 0:
                     // TODO: Check if re-distribution is needed
                     res.render('index', { txid: null, error: "Distribute instantiated, please wait 30 seconds" });
-                    return [4 /*yield*/, splitter.evenlyDistributeTokens(process.env.TOKENID)];
+                    return [4 /*yield*/, slpFaucet.evenlyDistributeTokens(process.env.TOKENID)];
                 case 1:
                     _a.sent();
                     return [4 /*yield*/, sleep(5000)];
                 case 2:
                     _a.sent();
-                    return [4 /*yield*/, splitter.evenlyDistributeBch()];
+                    return [4 /*yield*/, slpFaucet.evenlyDistributeBch()];
                 case 3:
                     _a.sent();
                     return [2 /*return*/];
@@ -92,13 +92,13 @@ app.post('/', function (req, res) {
                     address = req.body.address;
                     if (!(address === process.env.DISTRIBUTE_SECRET)) return [3 /*break*/, 4];
                     res.render('index', { txid: null, error: "Token distribution instantiated, please wait 30 seconds..." });
-                    return [4 /*yield*/, splitter.evenlyDistributeTokens(process.env.TOKENID)];
+                    return [4 /*yield*/, slpFaucet.evenlyDistributeTokens(process.env.TOKENID)];
                 case 1:
                     _a.sent();
                     return [4 /*yield*/, sleep(5000)];
                 case 2:
                     _a.sent();
-                    return [4 /*yield*/, splitter.evenlyDistributeBch()];
+                    return [4 /*yield*/, slpFaucet.evenlyDistributeBch()];
                 case 3:
                     _a.sent();
                     return [2 /*return*/];
@@ -116,7 +116,7 @@ app.post('/', function (req, res) {
                     _a.label = 5;
                 case 5:
                     _a.trys.push([5, 7, , 8]);
-                    return [4 /*yield*/, splitter.selectFaucetAddressForTokens(process.env.TOKENID)];
+                    return [4 /*yield*/, slpFaucet.selectFaucetAddressForTokens(process.env.TOKENID)];
                 case 6:
                     changeAddr = _a.sent();
                     return [3 /*break*/, 8];
@@ -128,8 +128,8 @@ app.post('/', function (req, res) {
                     _a.trys.push([8, 10, , 11]);
                     inputs = [];
                     inputs = inputs.concat(changeAddr.balance.slpTokenUtxos[process.env.TOKENID]).concat(changeAddr.balance.nonSlpUtxos);
-                    inputs.map(function (i) { return i.wif = splitter.wifs[changeAddr.address]; });
-                    return [4 /*yield*/, splitter.network.simpleTokenSend(process.env.TOKENID, new bignumber_js_1.default(faucetQty), inputs, address, changeAddr.address)];
+                    inputs.map(function (i) { return i.wif = slpFaucet.wifs[changeAddr.address]; });
+                    return [4 /*yield*/, slpFaucet.network.simpleTokenSend(process.env.TOKENID, new bignumber_js_1.default(faucetQty), inputs, address, changeAddr.address)];
                 case 9:
                     sendTxId = _a.sent();
                     return [3 /*break*/, 11];

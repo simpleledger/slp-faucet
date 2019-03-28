@@ -6,12 +6,12 @@ import bodyParser from 'body-parser';
 const app = express();
 
 import * as slpjs from 'slpjs';
-import { CoinSplitter } from './coinsplitter';
+import { SlpFaucetHandler } from './coinsplitter';
 import BigNumber from 'bignumber.js';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-let splitter = new CoinSplitter(process.env.MNEMONIC!);
+let slpFaucet = new SlpFaucetHandler(process.env.MNEMONIC!);
 const faucetQty = parseInt(process.env.TOKENQTY!);
 
 app.use(express.static('public'));
@@ -26,9 +26,9 @@ app.get('/distribute', async function(req, res) {
 	// TODO: Check if re-distribution is needed
 	res.render('index', { txid: null, error: "Distribute instantiated, please wait 30 seconds" });
 
-	await splitter.evenlyDistributeTokens(process.env.TOKENID!);
+	await slpFaucet.evenlyDistributeTokens(process.env.TOKENID!);
 	await sleep(5000);
-	await splitter.evenlyDistributeBch();
+	await slpFaucet.evenlyDistributeBch();
 })
 
 app.post('/', async function (req, res) {
@@ -37,9 +37,9 @@ app.post('/', async function (req, res) {
 	if(address === process.env.DISTRIBUTE_SECRET!) {
 		res.render('index', { txid: null, error: "Token distribution instantiated, please wait 30 seconds..." });
 
-		await splitter.evenlyDistributeTokens(process.env.TOKENID!);
+		await slpFaucet.evenlyDistributeTokens(process.env.TOKENID!);
 		await sleep(5000);
-		await splitter.evenlyDistributeBch();
+		await slpFaucet.evenlyDistributeBch();
 		return;
 	}
 
@@ -55,7 +55,7 @@ app.post('/', async function (req, res) {
 
 	let changeAddr: any;
 	try {
-		changeAddr = await splitter.selectFaucetAddressForTokens(process.env.TOKENID!);
+		changeAddr = await slpFaucet.selectFaucetAddressForTokens(process.env.TOKENID!);
 	} catch(error) {
 		res.render('index', { txid: null, error: "Faucet is temporarily empty :(" });
 		return;
@@ -65,8 +65,8 @@ app.post('/', async function (req, res) {
 	try {
 		let inputs: slpjs.SlpAddressUtxoResult[] = [];
 		inputs = inputs.concat(changeAddr.balance.slpTokenUtxos[process.env.TOKENID!]).concat(changeAddr.balance.nonSlpUtxos)
-		inputs.map(i => i.wif = splitter.wifs[changeAddr.address]);
-		sendTxId = await splitter.network.simpleTokenSend(process.env.TOKENID!, new BigNumber(faucetQty), inputs, address, changeAddr.address);
+		inputs.map(i => i.wif = slpFaucet.wifs[changeAddr.address]);
+		sendTxId = await slpFaucet.network.simpleTokenSend(process.env.TOKENID!, new BigNumber(faucetQty), inputs, address, changeAddr.address);
 	} catch(error) {
 		console.log(error);
 		res.render('index', { txid: null, error: "Server error." });

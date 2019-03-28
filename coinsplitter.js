@@ -55,8 +55,8 @@ else
 var slpjs = __importStar(require("slpjs"));
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
 var slpjs_1 = require("slpjs");
-var CoinSplitter = /** @class */ (function () {
-    function CoinSplitter(mnemonic) {
+var SlpFaucetHandler = /** @class */ (function () {
+    function SlpFaucetHandler(mnemonic) {
         var masterNode = BITBOX.HDNode.fromSeed(BITBOX.Mnemonic.toSeed(mnemonic)).derivePath("m/44'/245'/0'");
         this.addresses = [];
         this.wifs = {};
@@ -68,20 +68,20 @@ var CoinSplitter = /** @class */ (function () {
         }
         this.network = new slpjs.BitboxNetwork(BITBOX);
     }
-    CoinSplitter.prototype.evenlyDistributeTokens = function (tokenId) {
+    SlpFaucetHandler.prototype.evenlyDistributeTokens = function (tokenId) {
         return __awaiter(this, void 0, void 0, function () {
-            var balances, utxos, tokenBalances, totalToken, bchBalances;
+            var utxos, balances, tokenBalances, bchBalances, totalToken;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        // TODO: use a threshold to determine if split should be made
+                        // TODO: use a threshold to determine if split should be made automatically
                         if (this.addresses.length > 19)
                             throw Error("Cannot split token to more than 19 addresses");
+                        utxos = [];
                         return [4 /*yield*/, this.network.getAllSlpBalancesAndUtxos(this.addresses)];
                     case 1:
                         balances = (_a.sent());
-                        utxos = [];
                         tokenBalances = balances.filter(function (i) { try {
                             return i.result.slpTokenBalances[tokenId].isGreaterThan(0);
                         }
@@ -93,10 +93,10 @@ var CoinSplitter = /** @class */ (function () {
                             a.result.slpTokenUtxos[tokenId].forEach(function (txo) { return utxos.push(txo); });
                         }
                         catch (_) { } });
-                        totalToken = tokenBalances.reduce(function (t, v) { return t = t.plus(v.result.slpTokenBalances[tokenId]); }, new bignumber_js_1.default(0));
                         bchBalances = balances.filter(function (i) { return i.result.nonSlpUtxos.length > 0; });
                         bchBalances.map(function (i) { return i.result.nonSlpUtxos.forEach(function (j) { return j.wif = _this.wifs[i.address]; }); });
                         bchBalances.forEach(function (a) { return a.result.nonSlpUtxos.forEach(function (txo) { return utxos.push(txo); }); });
+                        totalToken = tokenBalances.reduce(function (t, v) { return t = t.plus(v.result.slpTokenBalances[tokenId]); }, new bignumber_js_1.default(0));
                         console.log("total token amount to distribute:", totalToken.toFixed());
                         console.log("spread amount", totalToken.dividedToIntegerBy(this.addresses.length).toFixed());
                         return [4 /*yield*/, this.network.simpleTokenSend(tokenId, Array(this.addresses.length).fill(totalToken.dividedToIntegerBy(this.addresses.length)), utxos, this.addresses, this.addresses[0])];
@@ -105,7 +105,7 @@ var CoinSplitter = /** @class */ (function () {
             });
         });
     };
-    CoinSplitter.prototype.evenlyDistributeBch = function () {
+    SlpFaucetHandler.prototype.evenlyDistributeBch = function () {
         return __awaiter(this, void 0, void 0, function () {
             var utxos, balances, bchBalances, totalBch, sendCost;
             var _this = this;
@@ -117,9 +117,9 @@ var CoinSplitter = /** @class */ (function () {
                     case 1:
                         balances = (_a.sent());
                         bchBalances = balances.filter(function (i) { return i.result.nonSlpUtxos.length > 0; });
-                        totalBch = bchBalances.reduce(function (t, v) { return t = t.plus(v.result.satoshis_available_bch); }, new bignumber_js_1.default(0));
                         bchBalances.map(function (i) { return i.result.nonSlpUtxos.forEach(function (j) { return j.wif = _this.wifs[i.address]; }); });
                         bchBalances.forEach(function (a) { return a.result.nonSlpUtxos.forEach(function (txo) { return utxos.push(txo); }); });
+                        totalBch = bchBalances.reduce(function (t, v) { return t = t.plus(v.result.satoshis_available_bch); }, new bignumber_js_1.default(0));
                         sendCost = this.network.slp.calculateSendCost(0, utxos.length, this.addresses.length, this.addresses[0]);
                         console.log("estimated send cost:", sendCost);
                         console.log("total BCH to distribute:", totalBch.toFixed());
@@ -130,7 +130,7 @@ var CoinSplitter = /** @class */ (function () {
             });
         });
     };
-    CoinSplitter.prototype.selectFaucetAddressForTokens = function (tokenId) {
+    SlpFaucetHandler.prototype.selectFaucetAddressForTokens = function (tokenId) {
         return __awaiter(this, void 0, void 0, function () {
             var a, i, b, sendCost;
             return __generator(this, function (_a) {
@@ -168,7 +168,7 @@ var CoinSplitter = /** @class */ (function () {
             });
         });
     };
-    return CoinSplitter;
+    return SlpFaucetHandler;
 }());
-exports.CoinSplitter = CoinSplitter;
+exports.SlpFaucetHandler = SlpFaucetHandler;
 //# sourceMappingURL=coinsplitter.js.map

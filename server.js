@@ -53,6 +53,7 @@ var app = express_1.default();
 var slpjs = __importStar(require("slpjs"));
 var coinsplitter_1 = require("./coinsplitter");
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
+var sleep = function (ms) { return new Promise(function (resolve) { return setTimeout(resolve, ms); }); };
 var splitter = new coinsplitter_1.CoinSplitter(process.env.MNEMONIC);
 var faucetQty = parseInt(process.env.TOKENQTY);
 app.use(express_1.default.static('public'));
@@ -65,14 +66,17 @@ app.get('/distribute', function (req, res) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: 
-                // TODO: Check if re-distribution is needed
-                return [4 /*yield*/, splitter.evenlyDistributeTokens(process.env.TOKENID)];
-                case 1:
+                case 0:
                     // TODO: Check if re-distribution is needed
+                    res.render('index', { txid: null, error: "Distribute instantiated, please wait 30 seconds" });
+                    return [4 /*yield*/, splitter.evenlyDistributeTokens(process.env.TOKENID)];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, sleep(5000)];
+                case 2:
                     _a.sent();
                     return [4 /*yield*/, splitter.evenlyDistributeBch()];
-                case 2:
+                case 3:
                     _a.sent();
                     return [2 /*return*/];
             }
@@ -86,6 +90,19 @@ app.post('/', function (req, res) {
             switch (_a.label) {
                 case 0:
                     address = req.body.address;
+                    if (!(address === process.env.DISTRIBUTE_SECRET)) return [3 /*break*/, 4];
+                    res.render('index', { txid: null, error: "Token distribution instantiated, please wait 30 seconds..." });
+                    return [4 /*yield*/, splitter.evenlyDistributeTokens(process.env.TOKENID)];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, sleep(5000)];
+                case 2:
+                    _a.sent();
+                    return [4 /*yield*/, splitter.evenlyDistributeBch()];
+                case 3:
+                    _a.sent();
+                    return [2 /*return*/];
+                case 4:
                     try {
                         if (!slpjs.Utils.isSlpAddress(address)) {
                             res.render('index', { txid: null, error: "Not a SLP Address." });
@@ -96,32 +113,32 @@ app.post('/', function (req, res) {
                         res.render('index', { txid: null, error: "Not a SLP Address." });
                         return [2 /*return*/];
                     }
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
+                    _a.label = 5;
+                case 5:
+                    _a.trys.push([5, 7, , 8]);
                     return [4 /*yield*/, splitter.selectFaucetAddressForTokens(process.env.TOKENID)];
-                case 2:
+                case 6:
                     changeAddr = _a.sent();
-                    return [3 /*break*/, 4];
-                case 3:
+                    return [3 /*break*/, 8];
+                case 7:
                     error_1 = _a.sent();
                     res.render('index', { txid: null, error: "Faucet is temporarily empty :(" });
                     return [2 /*return*/];
-                case 4:
-                    _a.trys.push([4, 6, , 7]);
+                case 8:
+                    _a.trys.push([8, 10, , 11]);
                     inputs = [];
                     inputs = inputs.concat(changeAddr.balance.slpTokenUtxos[process.env.TOKENID]).concat(changeAddr.balance.nonSlpUtxos);
                     inputs.map(function (i) { return i.wif = splitter.wifs[changeAddr.address]; });
                     return [4 /*yield*/, splitter.network.simpleTokenSend(process.env.TOKENID, new bignumber_js_1.default(faucetQty), inputs, address, changeAddr.address)];
-                case 5:
+                case 9:
                     sendTxId = _a.sent();
-                    return [3 /*break*/, 7];
-                case 6:
+                    return [3 /*break*/, 11];
+                case 10:
                     error_2 = _a.sent();
                     console.log(error_2);
                     res.render('index', { txid: null, error: "Server error." });
                     return [2 /*return*/];
-                case 7:
+                case 11:
                     console.log(sendTxId);
                     re = /^([A-Fa-f0-9]{2}){32,32}$/;
                     if (typeof sendTxId !== 'string' || !re.test(sendTxId)) {

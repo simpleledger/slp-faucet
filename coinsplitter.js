@@ -55,23 +55,6 @@ else
 var slpjs = __importStar(require("slpjs"));
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
 var slpjs_1 = require("slpjs");
-var sleep = function (ms) { return new Promise(function (resolve) { return setTimeout(resolve, ms); }); };
-var getRawTransactions = function (txids) {
-    return __awaiter(this, void 0, void 0, function () {
-        var res;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, BITBOX.RawTransactions.getRawTransaction(txids)];
-                case 1:
-                    res = _a.sent();
-                    return [4 /*yield*/, sleep(1000)];
-                case 2:
-                    _a.sent();
-                    return [2 /*return*/, res];
-            }
-        });
-    });
-};
 var CoinSplitter = /** @class */ (function () {
     function CoinSplitter(mnemonic) {
         var masterNode = BITBOX.HDNode.fromSeed(BITBOX.Mnemonic.toSeed(mnemonic)).derivePath("m/44'/245'/0'");
@@ -83,8 +66,7 @@ var CoinSplitter = /** @class */ (function () {
             this.wifs[address] = BITBOX.HDNode.toWIF(childNode);
             this.addresses.push(address);
         }
-        this.validator = new slpjs.LocalValidator(BITBOX, getRawTransactions);
-        this.network = new slpjs.BitboxNetwork(BITBOX, this.validator);
+        this.network = new slpjs.BitboxNetwork(BITBOX);
     }
     CoinSplitter.prototype.evenlyDistributeTokens = function (tokenId) {
         return __awaiter(this, void 0, void 0, function () {
@@ -107,11 +89,16 @@ var CoinSplitter = /** @class */ (function () {
                             return false;
                         } });
                         tokenBalances.map(function (i) { return i.result.slpTokenUtxos[tokenId].forEach(function (j) { return j.wif = _this.wifs[i.address]; }); });
-                        tokenBalances.forEach(function (a) { return Object.keys(a.result.slpTokenUtxos).forEach(function (id) { return a.result.slpTokenUtxos[id].forEach(function (txo) { return utxos.push(txo); }); }); });
+                        tokenBalances.forEach(function (a) { try {
+                            a.result.slpTokenUtxos[tokenId].forEach(function (txo) { return utxos.push(txo); });
+                        }
+                        catch (_) { } });
                         totalToken = tokenBalances.reduce(function (t, v) { return t = t.plus(v.result.slpTokenBalances[tokenId]); }, new bignumber_js_1.default(0));
                         bchBalances = balances.filter(function (i) { return i.result.nonSlpUtxos.length > 0; });
                         bchBalances.map(function (i) { return i.result.nonSlpUtxos.forEach(function (j) { return j.wif = _this.wifs[i.address]; }); });
                         bchBalances.forEach(function (a) { return a.result.nonSlpUtxos.forEach(function (txo) { return utxos.push(txo); }); });
+                        console.log("total token amount to distribute:", totalToken.toFixed());
+                        console.log("spread amount", totalToken.dividedToIntegerBy(this.addresses.length).toFixed());
                         return [4 /*yield*/, this.network.simpleTokenSend(tokenId, Array(this.addresses.length).fill(totalToken.dividedToIntegerBy(this.addresses.length)), utxos, this.addresses, this.addresses[0])];
                     case 2: return [2 /*return*/, _a.sent()];
                 }
@@ -131,9 +118,12 @@ var CoinSplitter = /** @class */ (function () {
                         balances = (_a.sent());
                         bchBalances = balances.filter(function (i) { return i.result.nonSlpUtxos.length > 0; });
                         totalBch = bchBalances.reduce(function (t, v) { return t = t.plus(v.result.satoshis_available_bch); }, new bignumber_js_1.default(0));
-                        sendCost = this.network.slp.calculateSendCost(0, utxos.length, this.addresses.length, this.addresses[0]);
                         bchBalances.map(function (i) { return i.result.nonSlpUtxos.forEach(function (j) { return j.wif = _this.wifs[i.address]; }); });
                         bchBalances.forEach(function (a) { return a.result.nonSlpUtxos.forEach(function (txo) { return utxos.push(txo); }); });
+                        sendCost = this.network.slp.calculateSendCost(0, utxos.length, this.addresses.length, this.addresses[0]);
+                        console.log("estimated send cost:", sendCost);
+                        console.log("total BCH to distribute:", totalBch.toFixed());
+                        console.log("spread amount:", totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length + 1).toFixed());
                         return [4 /*yield*/, this.network.simpleBchSend(Array(this.addresses.length).fill(totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length)), utxos, this.addresses, this.addresses[0])];
                     case 2: return [2 /*return*/, _a.sent()];
                 }
@@ -142,24 +132,30 @@ var CoinSplitter = /** @class */ (function () {
     };
     CoinSplitter.prototype.selectFaucetAddressForTokens = function (tokenId) {
         return __awaiter(this, void 0, void 0, function () {
-            var a, i, b;
+            var a, i, b, sendCost;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.network.BITBOX.Address.details(this.addresses.map(function (a) { return slpjs_1.Utils.toCashAddress(a); }))];
                     case 1:
                         a = _a.sent();
-                        console.log("DETAILS", a);
                         i = 0;
                         _a.label = 2;
                     case 2:
                         if (!(i < this.addresses.length)) return [3 /*break*/, 5];
-                        if (!(a[i].unconfirmedBalanceSat === 0 && a[i].balanceSat > 0)) return [3 /*break*/, 4];
+                        if (!(a[i].unconfirmedBalanceSat === 0)) return [3 /*break*/, 4];
+                        console.log("details address:", a[i].cashAddress);
+                        console.log("addresses check:", slpjs_1.Utils.toCashAddress(this.addresses[i]));
+                        console.log("UnconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);
+                        console.log("balanceSat (includes token satoshis):", a[i].balanceSat);
                         return [4 /*yield*/, this.network.getAllSlpBalancesAndUtxos(this.addresses[i])];
                     case 3:
                         b = _a.sent();
+                        sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, this.addresses[0]);
                         try {
-                            console.log(b.slpTokenBalances[tokenId].toNumber());
-                            if (b.slpTokenBalances[tokenId].isGreaterThan(0) === true)
+                            console.log("token input amount: ", b.slpTokenBalances[tokenId].toNumber());
+                            console.log("BCH input amount:");
+                            console.log("estimated send cost:", sendCost);
+                            if (b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost)
                                 return [2 /*return*/, { address: this.addresses[i], balance: b }];
                         }
                         catch (_) { }

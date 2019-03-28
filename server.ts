@@ -9,6 +9,8 @@ import * as slpjs from 'slpjs';
 import { CoinSplitter } from './coinsplitter';
 import BigNumber from 'bignumber.js';
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
 let splitter = new CoinSplitter(process.env.MNEMONIC!);
 const faucetQty = parseInt(process.env.TOKENQTY!);
 
@@ -22,13 +24,24 @@ app.get('/', function (req, res) {
 
 app.get('/distribute', async function(req, res) {
 	// TODO: Check if re-distribution is needed
+	res.render('index', { txid: null, error: "Distribute instantiated, please wait 30 seconds" });
 
 	await splitter.evenlyDistributeTokens(process.env.TOKENID!);
+	await sleep(5000);
 	await splitter.evenlyDistributeBch();
 })
 
 app.post('/', async function (req, res) {
 	let address = req.body.address;
+
+	if(address === process.env.DISTRIBUTE_SECRET!) {
+		res.render('index', { txid: null, error: "Token distribution instantiated, please wait 30 seconds..." });
+
+		await splitter.evenlyDistributeTokens(process.env.TOKENID!);
+		await sleep(5000);
+		await splitter.evenlyDistributeBch();
+		return;
+	}
 
 	try {
 		if(!slpjs.Utils.isSlpAddress(address)) {

@@ -51,10 +51,10 @@ var express_1 = __importDefault(require("express"));
 var body_parser_1 = __importDefault(require("body-parser"));
 var app = express_1.default();
 var slpjs = __importStar(require("slpjs"));
-var coinsplitter_1 = require("./coinsplitter");
+var slpfaucet_1 = require("./slpfaucet");
 var bignumber_js_1 = __importDefault(require("bignumber.js"));
 var sleep = function (ms) { return new Promise(function (resolve) { return setTimeout(resolve, ms); }); };
-var slpFaucet = new coinsplitter_1.SlpFaucetHandler(process.env.MNEMONIC);
+var slpFaucet = new slpfaucet_1.SlpFaucetHandler(process.env.MNEMONIC);
 var faucetQty = parseInt(process.env.TOKENQTY);
 app.use(express_1.default.static('public'));
 app.use(body_parser_1.default.urlencoded({ extended: true }));
@@ -152,6 +152,6 @@ app.post('/', function (req, res) {
     });
 });
 app.listen(process.env.PORT, function () {
-    console.log('Example app listening on port ' + process.env.PORT + '!');
+    console.log('SLP faucet server listening on port ' + process.env.PORT + '!');
 });
 //# sourceMappingURL=server.js.map

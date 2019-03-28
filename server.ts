@@ -6,7 +6,7 @@ import bodyParser from 'body-parser';
 const app = express();
 
 import * as slpjs from 'slpjs';
-import { SlpFaucetHandler } from './coinsplitter';
+import { SlpFaucetHandler } from './slpfaucet';
 import BigNumber from 'bignumber.js';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -83,5 +83,5 @@ app.post('/', async function (req, res) {
 })
 
 app.listen(process.env.PORT, function () {
-	console.log('Example app listening on port '+process.env.PORT+'!')
+	console.log('SLP faucet server listening on port '+process.env.PORT+'!')
 })

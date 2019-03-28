@@ -171,4 +171,4 @@ var SlpFaucetHandler = /** @class */ (function () {
     return SlpFaucetHandler;
 }());
 exports.SlpFaucetHandler = SlpFaucetHandler;
-//# sourceMappingURL=coinsplitter.js.map
+//# sourceMappingURL=slpfaucet.js.map

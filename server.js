@@ -67,6 +67,7 @@ app.get('/distribute', function (req, res) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    console.log("Distribute instantiated, please wait 30 seconds...");
                     // TODO: Check if re-distribution is needed
                     res.render('index', { txid: null, error: "Distribute instantiated, please wait 30 seconds" });
                     return [4 /*yield*/, slpFaucet.evenlyDistributeTokens(process.env.TOKENID)];

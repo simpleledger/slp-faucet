@@ -23,6 +23,7 @@ app.get('/', function (req, res) {
 })
 
 app.get('/distribute', async function(req, res) {
+	console.log("Distribute instantiated, please wait 30 seconds...");
 	// TODO: Check if re-distribution is needed
 	res.render('index', { txid: null, error: "Distribute instantiated, please wait 30 seconds" });
 

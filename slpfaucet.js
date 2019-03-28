@@ -120,7 +120,7 @@ var SlpFaucetHandler = /** @class */ (function () {
                         bchBalances.map(function (i) { return i.result.nonSlpUtxos.forEach(function (j) { return j.wif = _this.wifs[i.address]; }); });
                         bchBalances.forEach(function (a) { return a.result.nonSlpUtxos.forEach(function (txo) { return utxos.push(txo); }); });
                         totalBch = bchBalances.reduce(function (t, v) { return t = t.plus(v.result.satoshis_available_bch); }, new bignumber_js_1.default(0));
-                        sendCost = this.network.slp.calculateSendCost(0, utxos.length, this.addresses.length, this.addresses[0]);
+                        sendCost = this.network.slp.calculateSendCost(0, utxos.length, this.addresses.length, this.addresses[0], 1, false);
                         console.log("estimated send cost:", sendCost);
                         console.log("total BCH to distribute:", totalBch.toFixed());
                         console.log("spread amount:", totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length + 1).toFixed());

@@ -66,7 +66,7 @@ export class SlpFaucetHandler {
         bchBalances.forEach(a => a.result.nonSlpUtxos.forEach(txo => utxos.push(txo)));
 
         let totalBch = bchBalances.reduce((t, v) => t = t.plus(v.result.satoshis_available_bch), new BigNumber(0));
-        let sendCost = this.network.slp.calculateSendCost(0, utxos.length, this.addresses.length, this.addresses[0]);
+        let sendCost = this.network.slp.calculateSendCost(0, utxos.length, this.addresses.length, this.addresses[0], 1, false);
         console.log("estimated send cost:", sendCost);
         console.log("total BCH to distribute:", totalBch.toFixed());
         console.log("spread amount:", totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length+1).toFixed());

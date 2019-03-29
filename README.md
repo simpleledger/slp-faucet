@@ -14,6 +14,7 @@ MNEMONIC=______
 TOKENID=_______
 TOKENQTY=______
 DISTRIBUTE_SECRET=______
+PORT=______
 ```
 
 ## Run the web app locally:

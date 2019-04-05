@@ -62,28 +62,6 @@ app.set('view engine', 'ejs');
 app.get('/', function (req, res) {
     res.render('index', { txid: null, error: null });
 });
-app.get('/distribute', function (req, res) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    console.log("Distribute instantiated, please wait 30 seconds...");
-                    // TODO: Check if re-distribution is needed
-                    res.render('index', { txid: null, error: "Distribute instantiated, please wait 30 seconds" });
-                    return [4 /*yield*/, slpFaucet.evenlyDistributeTokens(process.env.TOKENID)];
-                case 1:
-                    _a.sent();
-                    return [4 /*yield*/, sleep(5000)];
-                case 2:
-                    _a.sent();
-                    return [4 /*yield*/, slpFaucet.evenlyDistributeBch()];
-                case 3:
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
-    });
-});
 app.post('/', function (req, res) {
     return __awaiter(this, void 0, void 0, function () {
         var address, changeAddr, error_1, sendTxId, inputs, error_2, re;

@@ -22,16 +22,6 @@ app.get('/', function (req, res) {
 	res.render('index', { txid: null, error: null });
 })
 
-app.get('/distribute', async function(req, res) {
-	console.log("Distribute instantiated, please wait 30 seconds...");
-	// TODO: Check if re-distribution is needed
-	res.render('index', { txid: null, error: "Distribute instantiated, please wait 30 seconds" });
-
-	await slpFaucet.evenlyDistributeTokens(process.env.TOKENID!);
-	await sleep(5000);
-	await slpFaucet.evenlyDistributeBch();
-})
-
 app.post('/', async function (req, res) {
 	let address = req.body.address;
 
@@ -54,7 +44,7 @@ app.post('/', async function (req, res) {
 		return;
 	}
 
-	let changeAddr: any;
+	let changeAddr: { address: string, balance: slpjs.SlpBalancesResult };
 	try {
 		changeAddr = await slpFaucet.selectFaucetAddressForTokens(process.env.TOKENID!);
 	} catch(error) {
@@ -62,7 +52,7 @@ app.post('/', async function (req, res) {
 		return;
 	}
 	
-	let sendTxId;
+	let sendTxId: string;
 	try {
 		let inputs: slpjs.SlpAddressUtxoResult[] = [];
 		inputs = inputs.concat(changeAddr.balance.slpTokenUtxos[process.env.TOKENID!]).concat(changeAddr.balance.nonSlpUtxos)

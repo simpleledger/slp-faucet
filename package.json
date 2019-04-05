@@ -23,7 +23,7 @@
     "ejs": "^2.6.1",
     "express": "^4.15.3",
     "request": "^2.81.0",
-    "slpjs": "^0.15.9",
+    "slpjs": "^0.15.10",
     "bitbox-sdk": "3.0.11"
   },
   "devDependencies": {

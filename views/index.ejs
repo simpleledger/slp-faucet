@@ -2,25 +2,175 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Simplest SLP Faucet</title>
-    <link rel="stylesheet" type="text/css" href="/css/style.css">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Claim free SLP tokens">
+  
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+
+    <!-- Social Cards -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="" />
+    <meta name="twitter:title" content="The Simple Ledger Protocol Faucet" />
+    <meta name="twitter:description" content="Browse and explore tokens built on top of Bitcoin Cash" />
+    <meta name="twitter:image" content="https://simpleledger.info/img/social.png" />
+    <meta name="twitter:image:alt" content="The Simple Ledger Protocol Faucet" />
+    <meta property="og:url" content="https://simpleledger.network" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="The Simple Ledger Protocol Faucet" />
+    <meta property="og:description" content="Claim free SLP tokens" />
+    <meta property="og:image" content="" />
+
+    <title>The Simple Ledger Protocol Faucet</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles -->
+    <link href="css/custom.css" rel="stylesheet">
   </head>
   <body>
-    <div class="container">
-      <fieldset>
-        <form action="/" method="post">
-          <input name="address" type="text" class="ghost-input" placeholder="Enter a Simple Ledger Address" required>
-          <input type="submit" class="ghost-button" value="Send Tokens!">
+    <header class="masthead mb-auto bg-dark">
+        <div class="inner">
+          <h3 class="masthead-brand">SLP Faucet</h3>
+          <nav class="nav nav-masthead justify-content-center">
+            <a class="nav-link active" href="#">Faucet</a>
+            <a class="nav-link" href="https://simpleledger.info">Explorer</a>
+            <a class="nav-link" href="https://simpleledger.cash">Learn More</a>
+          </nav>
+        </div>
+    </header>
+    <main role="main">
+      <div class="jumbotron text-center p-5">
+        <img class="logo-main" src="img/logo-slp-faucet.png" alt="SLP Faucet" />
+            <h1>The Simple Ledger Protocol Faucet</h1>
+            <p class="lead">Claim free SLP tokens.</p>
+        <p>The SLP faucet is designed to bring awareness and circulation to the SLP economy.</p>
+        
+        <form class="token-selector-form" action="/" method="post">
+          <input name="address" type="text" placeholder="Enter your SLP address, ex: simpleledger:qp7l6ns2g…" required>
+          
+          <!-- <div class="custom-select">
+            <select>
+            <option value="">Token Selector</option>
+            <option value="1">SLP Token</option>
+            <option value="1">SLP Token 1</option>
+            </select>
+          </div> -->
+          <% if(txid !== null){ %>
+            <p>txid: <%= txid %></p>
+          <% } %>
+    
+          <% if(error !== null){ %>
+            <p>error: <%= error %></p>
+          <% } %>
+          <p><input type="submit" value="Claim free SLP tokens"></p>
         </form>
-        <% if(txid !== null){ %>
-          <p><%= txid %></p>
-        <% } %>
-
-        <% if(error !== null){ %>
-          <p><%= error %></p>
-        <% } %>
-      </fieldset>
-    </div>
+          <!-- end .token-selector-form -->
+          
+        <h4 class="mb-4">Stay up to date:</h4>
+        
+        <ul id="sm-links" class="nav justify-content-center">
+          <li class="nav-item">
+            <a href="https://web.telegram.org/#/im?p=@simpleledger"><img src="img/telegram.png" alt="Telegram" /></a>
+          </li>
+          <li class="nav-item">
+            <a href="https://twitter.com/SimpleLedger"><img src="img/twitter.png" alt="Twitter" /></a>
+          </li>
+          <li class="nav-item">
+            <a href="https://www.youtube.com/channel/UC_WJO3lyHAhdU6oEk0lhMLw"><img src="img/youtube.png" alt="Youtube" /></a>
+          </li>
+        </ul>
+        <!-- end #sm-links -->
+      
+        </div>
+      <!-- end .jumbotron -->
+      
+      <div class="blurb bg-secondary p-5">
+        <div class="container">
+          <div class="row">
+            <div class="col">
+              <h3>What is a faucet?</h3>
+              <div class="divider"></div>
+              <p>A faucet is a tool that allows users to claim a small amount of free tokens, in this case, SLP tokens. <a href="https://simpleledger.cash">Learn More.</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- end .blurb -->
+      
+      <!-- <div id="featured-projects" class="container">
+        <div class="row">
+          <div class="col">
+            <h3>Featured Projects on SLP</h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <img src="img/thumb-badger.jpg" alt="Badger Wallet" class="mb-4" />
+            <h4>Badger Wallet</h4>
+            <p>SLP Ecosystem Tools</p>
+          </div>
+          <div class="col">
+            <img src="img/thumb-loderunner.jpg" alt="Loderunner" class="mb-4" />
+            <h4>Loderunner</h4>
+            <p>Projects Leveraging SLP</p>
+          </div>
+        </div>
+      </div> -->
+      <!-- end #featured-projects -->
+      
+      <div id="banner-bottom">
+        <div class="row p-5 text-center">
+          <div class="col">
+            <h3>Get Started with SLP Tokens</h3>
+          </div>
+        </div>
+      </div>
+      
+    </main>
+  
+      <footer id="footer-main" class="bg-dark p-5">
+        <div class="row">
+          <div class="col">
+            <h4>Source Code</h4>
+            <ul class="list-unstyled text-small">
+              <li><a class="text-muted" href="http://github.com/blockparty-sh/slp-explorer">SLP Explorer</a></li>
+              <li><a class="text-muted" href="https://github.com/simpleledger/SLPDB">SLPDB</a></li>
+              <li><a class="text-muted" href="https://github.com/fountainhead-cash/slpserve">slpserve</a></li>
+              <li><a class="text-muted" href="https://github.com/fountainhead-cash/slpqueryd">slpqueryd</a></li>
+              <li><a class="text-muted" href="https://github.com/simpleledger/slpjs">slpjs</a></li>
+            </ul>
+          </div>
+          <div class="col">
+            <h4>Resources</h4>
+            <ul class="list-unstyled text-small">
+              <li><a class="text-muted" href="https://simpleledger.cash">simpleledger.cash</a></li>
+              <li><a class="text-muted" href="https://github.com/simpleledger/slp-specifications">specification</a></li>
+              <li><a class="text-muted" href="https://developer.bitcoin.com/slp/">slp-sdk</a></li>
+            </ul>
+          </div>
+          <div class="col">
+            <h4>Connect</h4>
+            <ul class="list-unstyled text-small">
+              <li><a class="text-muted" href="https://web.telegram.org/#/im?p=@simpleledger">SimpleLedger Chat</a></li>
+              <li><a class="text-muted" href="https://www.youtube.com/channel/UC_WJO3lyHAhdU6oEk0lhMLw">SimpleLedger Youtube</a></li>
+              <li><a class="text-muted" href="https://twitter.com/SimpleLedger">SimpleLedger Twitter</a></li>
+              <li><a class="text-muted" href="http://t.me/fountainheadcash">Fountainhead Chat</a></li>
+            </ul>
+          </div>
+        </div>
+      </footer>
+  
+  
+      <!-- Bootstrap core JavaScript
+      ================================================== -->
+      <!-- Placed at the end of the document so the pages load faster -->
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+      <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+      <script src="js/bootstrap.min.js"></script>
+    <script src="js/script.js"></script>
   </body>
 </html>

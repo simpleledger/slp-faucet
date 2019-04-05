@@ -1,0 +1,206 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,600');
+
+/* Base structure */
+
+html,
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: #ffffff;
+}
+.jumbotron {
+	background: url('../img/top.svg') top right no-repeat;
+	padding: 6rem 2rem;
+}
+
+h3 { font-size: 32px; font-weight: 700; }
+p.lead { font-weight: 700; }
+
+.divider { 
+	background-color: #FFF; 
+	height: 5px; 
+	width: 20%; 
+	margin: 20px 0; 
+}
+
+.bg-secondary {	background-color: #5EBD6D!important; }
+.bg-secondary p { color: #FFF; }
+.bg-secondary h3 { color: #111; }
+.bg-secondary a,
+a:focus,
+a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* Header/Nav */
+.masthead {
+  margin-bottom: 2rem;
+}
+.masthead .inner {
+	padding: 1rem 3rem 3rem 3rem;
+}
+
+.masthead-brand {
+  margin-bottom: 20px;
+  color: #5EBD6D;
+  text-align: center;
+}
+
+.nav-masthead .nav-link {
+  padding: .25rem 0;
+  font-weight: 700;
+  color: rgba(255, 255, 255, .5);
+  background-color: transparent;
+  border-bottom: .25rem solid transparent;
+  text-transform: uppercase;
+}
+
+.nav-masthead .nav-link:hover,
+.nav-masthead .nav-link:focus {
+  border-bottom-color: rgba(255, 255, 255, .25);
+}
+
+.nav-masthead .nav-link + .nav-link {
+  margin-left: 2rem;
+}
+
+.nav-masthead .active {
+  color: #fff;
+  border-bottom-color: #fff;
+}
+
+@media (min-width: 48em) {
+  .masthead-brand {
+    float: left;
+  }
+  .nav-masthead {
+    float: right;
+  }
+}
+
+
+/* Form */
+.token-selector-form {
+	margin: 60px 0;
+}
+.token-selector-form input[type="text"], .token-selector-form select, .token-selector-form input[type="submit"] {
+	-webkit-box-shadow: 0px 0px 47px 0px rgba(94,189,109,0.3);
+	-moz-box-shadow: 0px 0px 47px 0px rgba(94,189,109,0.3);
+	box-shadow: 0px 0px 47px 0px rgba(94,189,109,0.3);
+}
+.token-selector-form input[type="text"] {
+	border: 1px solid #5EBD6D;
+	padding: .4em 1em;
+	border-radius: 4px;
+	width: 50%;
+	margin-bottom: 20px;
+}
+.token-selector-form input[type="text"]:focus {
+	outline: none !important;
+	border: 1px solid #FFF;
+	-webkit-box-shadow: 0px 0px 47px 0px rgba(136,136,136,0.3);
+	-moz-box-shadow: 0px 0px 47px 0px rgba(136,136,136,0.3);
+	box-shadow: 0px 0px 47px 0px rgba(136,136,136,0.3);
+}
+input[type="submit"] { 
+	background-color: #5EBD6D; 
+	color: #FFF; 
+	border-radius: 4px; 
+	border: none; 
+	padding: .6em 1em; 
+	cursor: pointer;  
+}
+
+/* Custom Select styles 
+https://www.w3schools.com/howto/howto_custom_select.asp */
+
+.custom-select select {
+  display: none;
+}
+
+.custom-select {
+  width: 250px;
+  position: relative;
+  border: 1px solid #5EBD6D;
+  color: #444;
+  border-radius: 4px;
+  padding: 0;
+}
+
+.select-selected {
+  color: #5EBD6D; 
+  font-weight: 700;
+}
+
+.select-items div,.select-selected {
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.select-items {
+  position: absolute;
+  background-color: #FFF;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  border: 1px solid #5EBD6D;
+}
+
+.select-hide {
+  display: none;
+}
+
+.select-items div:hover, .same-as-selected {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+
+/* Footer */
+#footer-main h4, #footer-main a.text-muted {
+	color: #f8f8f8!important;
+	font-size: 16px;
+}
+
+#footer-main h4 {
+	margin-bottom: 2rem;
+	font-weight: 700;
+	font-size: 18px;
+}
+
+#footer-main li {
+	margin-bottom: .2rem;
+}
+
+/* Page Styles */
+
+/* Home*/
+img.logo-main { width: 15%; margin-bottom: 30px; }
+#sm-links .nav-item { margin: 0 1rem; }
+.blurb p { font-size: 24px; }
+
+#featured-projects { padding: 4rem 1rem; }
+#featured-projects .col { padding: 2rem; }
+#featured-projects .col img {
+	width: 100%;
+}
+#featured-projects h3 { font-size: 32px; }
+#featured-projects p { font-size: 18px; color: #999; }
+
+#banner-bottom {
+	background: url('../img/bg-banner-bottom.png') top right no-repeat;
+	padding: 4rem 2rem;
+}
+#banner-bottom  h3 {
+	color: #FFF;
+	font-weight: 700;
+	font-size: 34px;
+}
+
+/* Mobile Styles */
+@media only screen and (max-width: 600px) {
+	img.logo-main { width: 30%; }
+	.nav-masthead .nav-link { font-size: 13px; }
+	.custom-select { margin-bottom: 20px; }
+	.custom-select, .token-selector-form input[type="text"], .token-selector-form select, .token-selector-form input[type="submit"] { width: 100%!important; }	
+}

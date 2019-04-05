@@ -142,7 +142,7 @@ var SlpFaucetHandler = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         if (!(i < this.addresses.length)) return [3 /*break*/, 5];
-                        if (!(a[i].unconfirmedBalanceSat === 0)) return [3 /*break*/, 4];
+                        if (!(a[i].unconfirmedTxApperances < 25)) return [3 /*break*/, 4];
                         console.log("details address:", a[i].cashAddress);
                         console.log("addresses check:", slpjs_1.Utils.toCashAddress(this.addresses[i]));
                         console.log("UnconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);

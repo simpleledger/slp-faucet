@@ -78,7 +78,7 @@ export class SlpFaucetHandler {
         let a = await this.network.BITBOX.Address.details(this.addresses.map(a => { return Utils.toCashAddress(a); }));
         //console.log("DETAILS", a);
         for(let i = 0; i < this.addresses.length; i++) {
-            if(a[i].unconfirmedBalanceSat === 0) {
+            if(a[i].unconfirmedTxApperances < 25) {
                 console.log("details address:", a[i].cashAddress);
                 console.log("addresses check:", Utils.toCashAddress(this.addresses[i]));
                 console.log("UnconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);

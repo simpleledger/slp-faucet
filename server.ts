@@ -31,6 +31,7 @@ app.post('/', async function (req, res) {
 		await slpFaucet.evenlyDistributeTokens(process.env.TOKENID!);
 		await sleep(5000);
 		await slpFaucet.evenlyDistributeBch();
+		slpFaucet.currentFaucetAddressIndex = 0;
 		return;
 	}
 

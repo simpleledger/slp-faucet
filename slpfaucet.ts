@@ -12,6 +12,7 @@ export class SlpFaucetHandler {
     addresses: string[];
     wifs: { [key: string]: string }
     network: slpjs.BitboxNetwork;
+    currentFaucetAddressIndex = 0;
 
     constructor(mnemonic: string) {
         let masterNode = BITBOX.HDNode.fromSeed(BITBOX.Mnemonic.toSeed(mnemonic!)).derivePath("m/44'/245'/0'");
@@ -49,7 +50,6 @@ export class SlpFaucetHandler {
         let totalToken: BigNumber = tokenBalances.reduce((t, v) => t = t.plus(v.result.slpTokenBalances[tokenId]), new BigNumber(0));
         console.log("total token amount to distribute:", totalToken.toFixed())
         console.log("spread amount", totalToken.dividedToIntegerBy(this.addresses.length).toFixed());
-
         return await this.network.simpleTokenSend(tokenId, Array(this.addresses.length).fill(totalToken.dividedToIntegerBy(this.addresses.length)), utxos, this.addresses, this.addresses[0]);
     }
     
@@ -75,23 +75,23 @@ export class SlpFaucetHandler {
     }
 
     async selectFaucetAddressForTokens(tokenId: string): Promise<{ address: string, balance: slpjs.SlpBalancesResult }> {
-        let a = await this.network.BITBOX.Address.details(this.addresses.map(a => { return Utils.toCashAddress(a); }));
-        //console.log("DETAILS", a);
-        for(let i = 0; i < this.addresses.length; i++) {
+        let addresses = this.addresses.filter((a, i) => i >= this.currentFaucetAddressIndex).map(a => { return Utils.toCashAddress(a); });
+        let a = await this.network.BITBOX.Address.details(addresses);
+        for(let i = 0; i < addresses.length; i++) {
             if(a[i].unconfirmedTxApperances < 25) {
                 console.log("details address:", a[i].cashAddress);
-                console.log("addresses check:", Utils.toCashAddress(this.addresses[i]));
+                console.log("addresses check:", Utils.toCashAddress(addresses[i]));
                 console.log("UnconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);
                 console.log("balanceSat (includes token satoshis):", a[i].balanceSat);
-                let b = (await this.network.getAllSlpBalancesAndUtxos(this.addresses[i]) as slpjs.SlpBalancesResult);
-                let sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, this.addresses[0]);
-                try {
-                    console.log("token input amount: ", b.slpTokenBalances[tokenId].toNumber());
-                    console.log("BCH input amount:", )
-                    console.log("estimated send cost:", sendCost);
-                    if(b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost)
-                        return { address: this.addresses[i], balance: b };
-                } catch(_) { }
+                let b = (await this.network.getAllSlpBalancesAndUtxos(addresses[i]) as slpjs.SlpBalancesResult);
+                let sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, addresses[0]);
+                console.log("token input amount: ", b.slpTokenBalances[tokenId].toNumber());
+                console.log("BCH input amount:", )
+                console.log("estimated send cost:", sendCost);
+                if(b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost)
+                    return { address: Utils.toSlpAddress(addresses[i]), balance: b };
+                this.currentFaucetAddressIndex++;
+                console.log("Address index", this.currentFaucetAddressIndex, "has insufficient BCH to fuel token transaction, trying the next index.");
             }
         }
         throw Error("There are no addresses with sufficient balance")

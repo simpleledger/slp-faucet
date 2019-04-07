@@ -57,6 +57,7 @@ var bignumber_js_1 = __importDefault(require("bignumber.js"));
 var slpjs_1 = require("slpjs");
 var SlpFaucetHandler = /** @class */ (function () {
     function SlpFaucetHandler(mnemonic) {
+        this.currentFaucetAddressIndex = 0;
         var masterNode = BITBOX.HDNode.fromSeed(BITBOX.Mnemonic.toSeed(mnemonic)).derivePath("m/44'/245'/0'");
         this.addresses = [];
         this.wifs = {};
@@ -132,33 +133,35 @@ var SlpFaucetHandler = /** @class */ (function () {
     };
     SlpFaucetHandler.prototype.selectFaucetAddressForTokens = function (tokenId) {
         return __awaiter(this, void 0, void 0, function () {
-            var a, i, b, sendCost;
+            var addresses, a, i, b, sendCost;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.network.BITBOX.Address.details(this.addresses.map(function (a) { return slpjs_1.Utils.toCashAddress(a); }))];
+                    case 0:
+                        addresses = this.addresses.filter(function (a, i) { return i >= _this.currentFaucetAddressIndex; }).map(function (a) { return slpjs_1.Utils.toCashAddress(a); });
+                        return [4 /*yield*/, this.network.BITBOX.Address.details(addresses)];
                     case 1:
                         a = _a.sent();
                         i = 0;
                         _a.label = 2;
                     case 2:
-                        if (!(i < this.addresses.length)) return [3 /*break*/, 5];
+                        if (!(i < addresses.length)) return [3 /*break*/, 5];
                         if (!(a[i].unconfirmedTxApperances < 25)) return [3 /*break*/, 4];
                         console.log("details address:", a[i].cashAddress);
-                        console.log("addresses check:", slpjs_1.Utils.toCashAddress(this.addresses[i]));
+                        console.log("addresses check:", slpjs_1.Utils.toCashAddress(addresses[i]));
                         console.log("UnconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);
                         console.log("balanceSat (includes token satoshis):", a[i].balanceSat);
-                        return [4 /*yield*/, this.network.getAllSlpBalancesAndUtxos(this.addresses[i])];
+                        return [4 /*yield*/, this.network.getAllSlpBalancesAndUtxos(addresses[i])];
                     case 3:
                         b = _a.sent();
-                        sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, this.addresses[0]);
-                        try {
-                            console.log("token input amount: ", b.slpTokenBalances[tokenId].toNumber());
-                            console.log("BCH input amount:");
-                            console.log("estimated send cost:", sendCost);
-                            if (b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost)
-                                return [2 /*return*/, { address: this.addresses[i], balance: b }];
-                        }
-                        catch (_) { }
+                        sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, addresses[0]);
+                        console.log("token input amount: ", b.slpTokenBalances[tokenId].toNumber());
+                        console.log("BCH input amount:");
+                        console.log("estimated send cost:", sendCost);
+                        if (b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost)
+                            return [2 /*return*/, { address: slpjs_1.Utils.toSlpAddress(addresses[i]), balance: b }];
+                        this.currentFaucetAddressIndex++;
+                        console.log("Address index", this.currentFaucetAddressIndex, "has insufficient BCH to fuel token transaction, trying the next index.");
                         _a.label = 4;
                     case 4:
                         i++;

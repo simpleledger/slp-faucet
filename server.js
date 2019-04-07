@@ -80,6 +80,7 @@ app.post('/', function (req, res) {
                     return [4 /*yield*/, slpFaucet.evenlyDistributeBch()];
                 case 3:
                     _a.sent();
+                    slpFaucet.currentFaucetAddressIndex = 0;
                     return [2 /*return*/];
                 case 4:
                     try {

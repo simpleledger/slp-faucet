@@ -79,19 +79,26 @@ export class SlpFaucetHandler {
         let a = await this.network.BITBOX.Address.details(addresses);
         for(let i = 0; i < addresses.length; i++) {
             if(a[i].unconfirmedTxApperances < 25) {
-                console.log("details address:", a[i].cashAddress);
-                console.log("addresses check:", Utils.toCashAddress(addresses[i]));
-                console.log("UnconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);
+                console.log("-----------------------------------");
+                console.log("Address Index: ", this.currentFaucetAddressIndex);
+                console.log("slp address:", Utils.toSlpAddress(a[i].cashAddress));
+                console.log("cash address:", Utils.toCashAddress(addresses[i]));
+                console.log("unconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);
                 console.log("balanceSat (includes token satoshis):", a[i].balanceSat);
+                console.log("Processing this address' UTXOs with SLP validator...");
                 let b = (await this.network.getAllSlpBalancesAndUtxos(addresses[i]) as slpjs.SlpBalancesResult);
                 let sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, addresses[0]);
-                console.log("token input amount: ", b.slpTokenBalances[tokenId].toNumber());
-                console.log("BCH input amount:", )
-                console.log("estimated send cost:", sendCost);
-                if(b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost)
+                console.log("Token input quantity: ", b.slpTokenBalances[tokenId].toFixed());
+                console.log("BCH (satoshis_available_bch):", b.satoshis_available_bch);
+                console.log("Estimated send cost (satoshis):", sendCost);
+                if(b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost) {
+                    console.log("Using address index:", this.currentFaucetAddressIndex);
+                    console.log("-----------------------------------");
                     return { address: Utils.toSlpAddress(addresses[i]), balance: b };
-                this.currentFaucetAddressIndex++;
+                }
                 console.log("Address index", this.currentFaucetAddressIndex, "has insufficient BCH to fuel token transaction, trying the next index.");
+                console.log("-----------------------------------");
+                this.currentFaucetAddressIndex++;
             }
         }
         throw Error("There are no addresses with sufficient balance")

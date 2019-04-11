@@ -147,21 +147,28 @@ var SlpFaucetHandler = /** @class */ (function () {
                     case 2:
                         if (!(i < addresses.length)) return [3 /*break*/, 5];
                         if (!(a[i].unconfirmedTxApperances < 25)) return [3 /*break*/, 4];
-                        console.log("details address:", a[i].cashAddress);
-                        console.log("addresses check:", slpjs_1.Utils.toCashAddress(addresses[i]));
-                        console.log("UnconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);
+                        console.log("-----------------------------------");
+                        console.log("Address Index: ", this.currentFaucetAddressIndex);
+                        console.log("slp address:", slpjs_1.Utils.toSlpAddress(a[i].cashAddress));
+                        console.log("cash address:", slpjs_1.Utils.toCashAddress(addresses[i]));
+                        console.log("unconfirmedBalanceSat:", a[i].unconfirmedBalanceSat);
                         console.log("balanceSat (includes token satoshis):", a[i].balanceSat);
+                        console.log("Processing this address' UTXOs with SLP validator...");
                         return [4 /*yield*/, this.network.getAllSlpBalancesAndUtxos(addresses[i])];
                     case 3:
                         b = _a.sent();
                         sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, addresses[0]);
-                        console.log("token input amount: ", b.slpTokenBalances[tokenId].toNumber());
-                        console.log("BCH input amount:");
-                        console.log("estimated send cost:", sendCost);
-                        if (b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost)
+                        console.log("Token input quantity: ", b.slpTokenBalances[tokenId].toFixed());
+                        console.log("BCH (satoshis_available_bch):", b.satoshis_available_bch);
+                        console.log("Estimated send cost (satoshis):", sendCost);
+                        if (b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost) {
+                            console.log("Using address index:", this.currentFaucetAddressIndex);
+                            console.log("-----------------------------------");
                             return [2 /*return*/, { address: slpjs_1.Utils.toSlpAddress(addresses[i]), balance: b }];
-                        this.currentFaucetAddressIndex++;
+                        }
                         console.log("Address index", this.currentFaucetAddressIndex, "has insufficient BCH to fuel token transaction, trying the next index.");
+                        console.log("-----------------------------------");
+                        this.currentFaucetAddressIndex++;
                         _a.label = 4;
                     case 4:
                         i++;

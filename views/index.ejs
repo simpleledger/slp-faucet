@@ -48,7 +48,7 @@
             <h1>The Simple Ledger Protocol Faucet</h1>
             <p class="lead">Claim free SLP tokens.</p>
         <p>The SLP faucet is designed to bring awareness and circulation to the SLP economy.</p>
-        
+
         <form class="token-selector-form" action="/" method="post">
           <input name="address" type="text" placeholder="Enter your SLP address, ex: simpleledger:qp7l6ns2g…" required>
           
@@ -66,6 +66,7 @@
           <% if(error !== null){ %>
             <p>error: <%= error %></p>
           <% } %>
+          <p>Get your SLP address with <a href="https://simpleledger.cash/project/badger-wallet/">Badger Wallet</a> or <a href="https://simpleledger.cash/project/electron-cash-slp-edition/">Electron Cash SLP Edition</a>.</p>
           <p><input type="submit" value="Claim free SLP tokens"></p>
         </form>
           <!-- end .token-selector-form -->

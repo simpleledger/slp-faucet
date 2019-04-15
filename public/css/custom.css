@@ -25,12 +25,15 @@ p.lead { font-weight: 700; }
 .bg-secondary {	background-color: #5EBD6D!important; }
 .bg-secondary p { color: #FFF; }
 .bg-secondary h3 { color: #111; }
-.bg-secondary a,
-a:focus,
-a:hover {
+
+a { color: #5EBD6D; transition: color 0.3s ease; }
+a:hover, a:focus { color: #111; text-decoration: underline; }
+.bg-secondary a {
   color: #fff;
   text-decoration: underline;
+  transition: color 0.3s ease;
 }
+.bg-secondary a:focus,.bg-secondary a:hover { color: #111; }
 
 /* Header/Nav */
 .masthead {
@@ -109,7 +112,9 @@ input[type="submit"] {
 	border: none; 
 	padding: .6em 1em; 
 	cursor: pointer;  
+	transition: background-color 0.3s ease;
 }
+input[type="submit"]:hover { background-color: #111; }
 
 /* Custom Select styles 
 https://www.w3schools.com/howto/howto_custom_select.asp */

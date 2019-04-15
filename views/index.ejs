@@ -60,7 +60,7 @@
             </select>
           </div> -->
           <% if(txid !== null){ %>
-            <p>txid: <%= txid %></p>
+            <p>txid: <a href="https://explorer.bitcoin.com/bch/tx/<%= txid %>"><%= txid %></a></p>
           <% } %>
     
           <% if(error !== null){ %>

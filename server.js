@@ -34,30 +34,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-var express_1 = __importDefault(require("express"));
-var body_parser_1 = __importDefault(require("body-parser"));
-var app = express_1.default();
-var slpjs = __importStar(require("slpjs"));
+var dotenv = require("dotenv");
+dotenv.config();
+var express = require("express");
+var bodyParser = require("body-parser");
+var app = express();
+var slpjs = require("slpjs");
 var slpfaucet_1 = require("./slpfaucet");
-var bignumber_js_1 = __importDefault(require("bignumber.js"));
+var bignumber_js_1 = require("bignumber.js");
 var sleep = function (ms) { return new Promise(function (resolve) { return setTimeout(resolve, ms); }); };
 var slpFaucet = new slpfaucet_1.SlpFaucetHandler(process.env.MNEMONIC);
 var faucetQty = parseInt(process.env.TOKENQTY);
-app.use(express_1.default.static('public'));
-app.use(body_parser_1.default.urlencoded({ extended: true }));
+app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 app.get('/', function (req, res) {
     res.render('index', { txid: null, error: null });

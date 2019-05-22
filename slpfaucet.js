@@ -34,40 +34,30 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var bitbox_sdk_1 = __importDefault(require("bitbox-sdk/lib/bitbox-sdk"));
-var BITBOX;
+var bitbox_sdk_1 = require("bitbox-sdk");
+var bitbox;
 var NETWORK = 'mainnet';
 if (NETWORK === "mainnet")
-    BITBOX = new bitbox_sdk_1.default({ restURL: "https://rest.bitcoin.com/v2/" });
+    bitbox = new bitbox_sdk_1.BITBOX({ restURL: "https://rest.bitcoin.com/v2/" });
 else
-    BITBOX = new bitbox_sdk_1.default({ restURL: "https://trest.bitcoin.com/v2/" });
-var slpjs = __importStar(require("slpjs"));
-var bignumber_js_1 = __importDefault(require("bignumber.js"));
+    bitbox = new bitbox_sdk_1.BITBOX({ restURL: "https://trest.bitcoin.com/v2/" });
+var slpjs = require("slpjs");
+var bignumber_js_1 = require("bignumber.js");
 var slpjs_1 = require("slpjs");
 var SlpFaucetHandler = /** @class */ (function () {
     function SlpFaucetHandler(mnemonic) {
         this.currentFaucetAddressIndex = 0;
-        var masterNode = BITBOX.HDNode.fromSeed(BITBOX.Mnemonic.toSeed(mnemonic)).derivePath("m/44'/245'/0'");
+        var masterNode = bitbox.HDNode.fromSeed(bitbox.Mnemonic.toSeed(mnemonic)).derivePath("m/44'/245'/0'");
         this.addresses = [];
         this.wifs = {};
         for (var i = 0; i < 18; i++) {
             var childNode = masterNode.derivePath("0/" + i);
-            var address = slpjs.Utils.toSlpAddress(BITBOX.ECPair.toCashAddress(BITBOX.ECPair.fromWIF(BITBOX.HDNode.toWIF(childNode))));
-            this.wifs[address] = BITBOX.HDNode.toWIF(childNode);
+            var address = slpjs.Utils.toSlpAddress(bitbox.ECPair.toCashAddress(bitbox.ECPair.fromWIF(bitbox.HDNode.toWIF(childNode))));
+            this.wifs[address] = bitbox.HDNode.toWIF(childNode);
             this.addresses.push(address);
         }
-        this.network = new slpjs.BitboxNetwork(BITBOX);
+        this.network = new slpjs.BitboxNetwork(bitbox);
     }
     SlpFaucetHandler.prototype.evenlyDistributeTokens = function (tokenId) {
         return __awaiter(this, void 0, void 0, function () {
@@ -157,7 +147,7 @@ var SlpFaucetHandler = /** @class */ (function () {
                         return [4 /*yield*/, this.network.getAllSlpBalancesAndUtxos(addresses[i])];
                     case 3:
                         b = _a.sent();
-                        sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, addresses[0]);
+                        sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, addresses[0]) - 546;
                         console.log("Token input quantity: ", b.slpTokenBalances[tokenId].toFixed());
                         console.log("BCH (satoshis_available_bch):", b.satoshis_available_bch);
                         console.log("Estimated send cost (satoshis):", sendCost);

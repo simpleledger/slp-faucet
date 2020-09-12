@@ -1,79 +1,81 @@
-import * as dotenv from 'dotenv';
+import * as dotenv from "dotenv";
 dotenv.config();
 
-import * as express from 'express';
-import * as bodyParser from 'body-parser';
+import * as express from "express";
 const app = express();
 
-import * as slpjs from 'slpjs';
-import { SlpFaucetHandler } from './slpfaucet';
-import BigNumber from 'bignumber.js';
+import BigNumber from "bignumber.js";
+import * as bodyParser from "body-parser";
+import * as slpjs from "slpjs";
+import { SlpFaucetHandler } from "./slpfaucet";
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-let slpFaucet = new SlpFaucetHandler(process.env.MNEMONIC!);
+const slpFaucet = new SlpFaucetHandler(process.env.MNEMONIC!);
 const faucetQty = parseInt(process.env.TOKENQTY!);
 
-app.use(express.static('public'));
+app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.set('view engine', 'ejs');
+app.set("view engine", "ejs");
 
-app.get('/', function (req, res) {
-	res.render('index', { txid: null, error: null });
-})
+app.get("/", (req, res) => {
+	res.render("index", { txid: null, error: null });
+});
 
-app.post('/', async function (req, res) {
-	let address = req.body.address;
+app.post("/", async (req, res) => {
+    const address = req.body.address;
 
-	if(address === process.env.DISTRIBUTE_SECRET!) {
-		res.render('index', { txid: null, error: "Token distribution instantiated, please wait 30 seconds..." });
+    if (address === process.env.DISTRIBUTE_SECRET!) {
+        res.render("index", { txid: null, error: "Token distribution instantiated, please wait 30 seconds..." });
 
-		await slpFaucet.evenlyDistributeTokens(process.env.TOKENID!);
-		await sleep(5000);
-		await slpFaucet.evenlyDistributeBch();
-		slpFaucet.currentFaucetAddressIndex = 0;
-		return;
-	}
+        await slpFaucet.evenlyDistributeTokens(process.env.TOKENID!);
+        await sleep(5000);
+        await slpFaucet.evenlyDistributeBch();
+        slpFaucet.currentFaucetAddressIndex = 0;
+        return;
+    }
 
-	try {
-		if(!slpjs.Utils.isSlpAddress(address)) {
-			res.render('index', { txid: null, error: "Not a SLP Address." });
-			return;
-		}
-	} catch(error) {
-		res.render('index', { txid: null, error: "Not a SLP Address." });
-		return;
-	}
+    try {
+        if (!slpjs.Utils.isSlpAddress(address)) {
+            res.render("index", { txid: null, error: "Not a SLP Address." });
+            return;
+        }
+    } catch (error) {
+        res.render("index", { txid: null, error: "Not a SLP Address." });
+        return;
+    }
 
-	let changeAddr: { address: string, balance: slpjs.SlpBalancesResult };
-	try {
-		changeAddr = await slpFaucet.selectFaucetAddressForTokens(process.env.TOKENID!);
-	} catch(error) {
-		res.render('index', { txid: null, error: "Faucet is temporarily empty :(" });
-		return;
-	}
-	
-	let sendTxId: string;
-	try {
-		let inputs: slpjs.SlpAddressUtxoResult[] = [];
-		inputs = inputs.concat(changeAddr.balance.slpTokenUtxos[process.env.TOKENID!]).concat(changeAddr.balance.nonSlpUtxos)
-		inputs.map(i => i.wif = slpFaucet.wifs[changeAddr.address]);
-		sendTxId = await slpFaucet.network.simpleTokenSend(process.env.TOKENID!, new BigNumber(faucetQty), inputs, address, changeAddr.address);
-	} catch(error) {
-		console.log(error);
-		res.render('index', { txid: null, error: "Server error." });
-		return;
-	}
-	console.log(sendTxId);
-	let re = /^([A-Fa-f0-9]{2}){32,32}$/;
-	if (typeof sendTxId !== 'string' || !re.test(sendTxId)) {
-		res.render('index', { txid: null, error: sendTxId });
-		return;
-	}
+    let changeAddr: { address: string, balance: slpjs.SlpBalancesResult };
+    try {
+        changeAddr = await slpFaucet.selectFaucetAddressForTokens(process.env.TOKENID!);
+    } catch (error) {
+        res.render("index", { txid: null, error: "Faucet is temporarily empty :(" });
+        return;
+    }
 
-	res.render('index', { txid: sendTxId, error: null });
-})
+    let sendTxId: string;
+    try {
+        let inputs: slpjs.SlpAddressUtxoResult[] = [];
+        inputs = inputs.concat(changeAddr.balance.slpTokenUtxos[process.env.TOKENID!]).concat(changeAddr.balance.nonSlpUtxos);
+        inputs.map((i) => i.wif = slpFaucet.wifs[changeAddr.address]);
+        slpFaucet.increaseChainLength();
+        sendTxId = await slpFaucet.network.simpleTokenSend(process.env.TOKENID!, new BigNumber(faucetQty), inputs, address, changeAddr.address);
 
-app.listen(process.env.PORT, function () {
-	console.log('SLP faucet server listening on port '+process.env.PORT+'!')
-})
+    } catch (error) {
+        console.log(error);
+        res.render("index", { txid: null, error: "Server error." });
+        return;
+    }
+    console.log(sendTxId);
+    const re = /^([A-Fa-f0-9]{2}){32,32}$/;
+    if (typeof sendTxId !== "string" || !re.test(sendTxId)) {
+        res.render("index", { txid: null, error: sendTxId });
+        return;
+    }
+
+    res.render("index", { txid: sendTxId, error: null });
+});
+
+app.listen(process.env.PORT, () => {
+    console.log("SLP faucet server listening on port " + process.env.PORT + "!");
+});

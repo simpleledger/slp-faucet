@@ -1,6 +1,6 @@
 {
-  "name": "simple-slp-faucet",
-  "version": "1.0.0",
+  "name": "slp-faucet",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,13 +18,16 @@
   },
   "homepage": "https://github.com/simpleledger/simple-slp-faucet#readme",
   "dependencies": {
+    "bitbox-sdk": "8.1.0",
+    "bitcore-lib-cash": "^8.22.2",
     "body-parser": "^1.17.2",
     "dotenv": "^6.2.0",
     "ejs": "^2.6.1",
     "express": "^4.15.3",
+    "grpc-bchrpc-node": "0.11.1",
     "request": "^2.81.0",
-    "slpjs": "^0.17.0",
-    "bitbox-sdk": "8.1.0"
+    "slpjs": "^0.27.8",
+    "synchronized-promise": "^0.3.1"
   },
   "devDependencies": {
     "@types/body-parser": "^1.17.0",

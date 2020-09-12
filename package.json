@@ -18,6 +18,9 @@
   },
   "homepage": "https://github.com/simpleledger/simple-slp-faucet#readme",
   "dependencies": {
+    "@types/body-parser": "^1.17.0",
+    "@types/dotenv": "^6.1.0",
+    "@types/express": "^4.16.1",
     "bitbox-sdk": "8.1.0",
     "bitcore-lib-cash": "^8.22.2",
     "body-parser": "^1.17.2",
@@ -28,10 +31,5 @@
     "request": "^2.81.0",
     "slpjs": "^0.27.8",
     "synchronized-promise": "^0.3.1"
-  },
-  "devDependencies": {
-    "@types/body-parser": "^1.17.0",
-    "@types/dotenv": "^6.1.0",
-    "@types/express": "^4.16.1"
   }
 }

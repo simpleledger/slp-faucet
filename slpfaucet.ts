@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import { BITBOX } from "bitbox-sdk";
-import { GrpcClient, ClientReadableStream, BlockNotification } from "grpc-bchrpc-node";
+import { GrpcClient } from "grpc-bchrpc-node";
 import * as slpjs from "slpjs";
 import { BchdNetwork, BchdValidator, Utils } from "slpjs";
 
@@ -16,9 +16,8 @@ export class SlpFaucetHandler {
     public network: BchdNetwork;
     public currentFaucetAddressIndex = 0;
 
-    private currentAddress =  "";
     private unconfirmedChainLength = new Map<string, number>();
-    private bchdBlockStream: null|ClientReadableStream<BlockNotification>;
+    private blockHeight = 0;
 
     constructor(mnemonic: string) {
         const masterNode = bitbox.HDNode.fromSeed(bitbox.Mnemonic.toSeed(mnemonic!)).derivePath("m/44'/245'/0'");
@@ -31,24 +30,11 @@ export class SlpFaucetHandler {
             this.addresses.push(address);
             this.unconfirmedChainLength.set(address, 0);
         }
-
-        this.network = new BchdNetwork({BITBOX: bitbox, validator, logger: console, client: validator.client});
-
-        // get current block height and listen for new blocks
-        this.bchdBlockStream = sp(async () => {
-            return await client.subscribeBlocks({
-                includeSerializedBlock: false, includeTxnData: true, includeTxnHashes: false
-            });
-        })();
-        this.bchdBlockStream!.on("data", async (data: BlockNotification) => {
-            this.unconfirmedChainLength.forEach((_, addr) => this.unconfirmedChainLength.set(addr, 0));
-            console.log(`Block found: ${data.getBlockInfo()!.getHeight()}`);
-        });
+        this.network = new BchdNetwork({ BITBOX: bitbox, validator, logger: console, client: validator.client });
     }
 
-    public increaseChainLength() {
-        const len = this.unconfirmedChainLength.get(this.currentAddress)!;
-        this.unconfirmedChainLength.set(this.currentAddress, len + 1);
+    get currentAddress() {
+        return this.addresses[this.currentFaucetAddressIndex];
     }
 
     public async evenlyDistributeTokens(tokenId: string): Promise<string> {
@@ -85,6 +71,7 @@ export class SlpFaucetHandler {
         const totalToken: BigNumber = tokenBalances.reduce((t, v) => t = t.plus(v.result.slpTokenBalances[tokenId]), new BigNumber(0));
         console.log("total token amount to distribute:", totalToken.toFixed());
         console.log("spread amount", totalToken.dividedToIntegerBy(this.addresses.length).toFixed());
+        await this.increaseChainLength();
         return await this.network.simpleTokenSend(tokenId, Array(this.addresses.length).fill(totalToken.dividedToIntegerBy(this.addresses.length)), utxos, this.addresses, this.addresses[0]);
     }
 
@@ -105,38 +92,61 @@ export class SlpFaucetHandler {
         console.log("estimated send cost:", sendCost);
         console.log("total BCH to distribute:", totalBch.toFixed());
         console.log("spread amount:", totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length + 1).toFixed());
-
+        await this.increaseChainLength();
         return await this.network.simpleBchSend(Array(this.addresses.length).fill(totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length)), utxos, this.addresses, this.addresses[0]);
     }
 
     public async selectFaucetAddressForTokens(tokenId: string): Promise<{ address: string, balance: slpjs.SlpBalancesResult }> {
         const addresses = this.addresses.filter((_, i) => i >= this.currentFaucetAddressIndex).map((a) => Utils.toCashAddress(a));
         for (let i = 0; i < addresses.length; i++) {
-            if (this.unconfirmedChainLength.get(this.addresses[i])! < 50) {
-                const b = (await this.network.getAllSlpBalancesAndUtxos(addresses[i]) as slpjs.SlpBalancesResult);
-                console.log("-----------------------------------");
-                console.log("Address Index: ", this.currentFaucetAddressIndex);
-                // console.log("slp address:", Utils.toSlpAddress(a[i].cashAddress));
-                console.log("cash address:", Utils.toCashAddress(addresses[i]));
-                // console.log("unconfirmed balanceSat (includes tokens):", a[i].unconfirmedBalanceSat);
-                // console.log("confirmed balanceSat (includes tokens):", a[i].balanceSat);
-                console.log("Processing this address' UTXOs with SLP validator...");
-                const sendCost = this.network.slp.calculateSendCost(60, b.nonSlpUtxos.length + b.slpTokenUtxos[tokenId].length, 3, addresses[0]) - 546;
-                console.log("Token input quantity: ", b.slpTokenBalances[tokenId].toFixed());
-                console.log("BCH (satoshis_available_bch):", b.satoshis_available_bch);
-                console.log("Estimated send cost (satoshis):", sendCost);
-                if (b.slpTokenBalances[tokenId].isGreaterThan(0) === true && b.satoshis_available_bch > sendCost) {
-                    console.log("Using address index:", this.currentFaucetAddressIndex);
-                    console.log("-----------------------------------");
-                    this.currentAddress = addresses[i];
-                    return { address: Utils.toSlpAddress(addresses[i]), balance: b };
-                }
-                console.log("Address index", this.currentFaucetAddressIndex, "has insufficient BCH to fuel token transaction, trying the next index.");
-                console.log("-----------------------------------");
-                this.currentFaucetAddressIndex++;
+            if (this.unconfirmedChainLength.get(this.addresses[i])! > 49) {
+                continue;
             }
+
+            const bals = (await this.network.getAllSlpBalancesAndUtxos(addresses[i]) as slpjs.SlpBalancesResult);
+            if (bals.nonSlpUtxos.length === 0 || !bals.slpTokenUtxos[tokenId]) {
+                continue;
+            }
+
+            console.log("-----------------------------------");
+            console.log("Address Index: ", this.currentFaucetAddressIndex);
+
+            console.log(`Unconfirmed chain length: ${this.unconfirmedChainLength.get(this.currentAddress)}`);
+
+            // console.log("slp address:", Utils.toSlpAddress(a[i].cashAddress));
+            console.log("cash address:", Utils.toCashAddress(addresses[i]));
+            // console.log("unconfirmed balanceSat (includes tokens):", a[i].unconfirmedBalanceSat);
+            // console.log("confirmed balanceSat (includes tokens):", a[i].balanceSat);
+            console.log("Processing this address' UTXOs with SLP validator...");
+            const sendCost = this.network.slp.calculateSendCost(60, bals.nonSlpUtxos.length + bals.slpTokenUtxos[tokenId].length, 3, addresses[0]) - 546;
+            console.log("Token input quantity: ", bals.slpTokenBalances[tokenId].toFixed());
+            console.log("BCH (satoshis_available_bch):", bals.satoshis_available_bch);
+            console.log("Estimated send cost (satoshis):", sendCost);
+            if (bals.slpTokenBalances[tokenId].isGreaterThan(0) === true && bals.satoshis_available_bch > sendCost) {
+                console.log("Using address index:", this.currentFaucetAddressIndex);
+                console.log("-----------------------------------");
+                return { address: Utils.toSlpAddress(addresses[i]), balance: bals };
+            }
+            console.log("Address index", this.currentFaucetAddressIndex, "has insufficient BCH to fuel token transaction, trying the next index.");
+            console.log("-----------------------------------");
+            this.currentFaucetAddressIndex++;
         }
         throw Error("There are no addresses with sufficient balance");
+    }
+
+    public async simpleTokenSend(tokenId: string, sendAmount: BigNumber, inputUtxos: slpjs.SlpAddressUtxoResult[], tokenReceiverAddresses: string | string[], changeReceiverAddress: string): Promise<string> {
+        await this.increaseChainLength();
+        return await this.network.simpleTokenSend(tokenId, sendAmount, inputUtxos, tokenReceiverAddresses, changeReceiverAddress);
+    }
+
+    private async increaseChainLength() {
+        const height = (await client.getBlockchainInfo()).getBestHeight();
+        if (height !== this.blockHeight) {
+            this.blockHeight = height;
+            this.unconfirmedChainLength.forEach((_, addr) => this.unconfirmedChainLength.set(addr, 0));
+        }
+        const len = this.unconfirmedChainLength.get(this.currentAddress)!;
+        this.unconfirmedChainLength.set(this.currentAddress, len + 1);
     }
 }
 

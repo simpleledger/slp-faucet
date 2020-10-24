@@ -1,0 +1,25 @@
+{
+  "name": "SLP Faucet Example",
+  "description": "An example of an SLP faucet website.",
+  "repository": "https://github.com/simpleledger/slp-faucet",
+  "logo": "https://slp-faucet.herokuapp.com/img/logo-slp-faucet.png",
+  "keywords": ["node", "bch", "slp", "faucet"],
+  "env": {
+    "MNEMONIC": {
+      "description": "WARNING: Running this application requires that you store your private keys (12-word mnemonic seed phrase) on a 3rd party system, i.e., Heroku's servers, which may cause your funds to be hacked or stolen.  We are not responsible for any loss of funds as a result of your use or misuse of this faucet.  Do not store large values or amounts on the mnemonic seed phrase in order to minimize your risk for financial loss. You should generate a brand new 12-word seed phrase to use exclusively for this faucet, this is your secret mnemonic seed phrase that will be used to automatically distribute your token when users paste their SLP address.  We recommend using Electron Cash SLP Edition standard wallet type to generate and monitor this faucet which uses an HD derivation path m/44'/245'/0'.  You can download the Electron Cash SLP wallet at: https://simpleledger.cash/project/electron-cash-slp-edition.  If you don't know or understand what a mnemonic seed phrase is you can learn more at: https://en.bitcoin.it/wiki/Seed_phrase",
+      "value": ""
+    },
+    "TOKENID": {
+      "description": "The token id associated with the SLP token that you would like this faucet to distribute",
+      "value": ""
+    },
+    "TOKENQTY": {
+      "description": "The quantity of token to be distributed to each faucet visitor",
+      "value": ""
+    },
+    "DISTRIBUTE_SECRET": {
+      "description": "The secret word used to initiate the faucet after you have funded one of the faucet's addresses with both Bitcoin Cash and your SLP token.  This will also need to be used when the faucet runs out of Bitcoin Cash or tokens.",
+      "value": ""
+    }
+  }
+}

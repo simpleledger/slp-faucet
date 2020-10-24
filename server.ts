@@ -26,12 +26,24 @@ app.post("/", async (req, res) => {
     const address = req.body.address;
 
     if (address === process.env.DISTRIBUTE_SECRET!) {
-        res.render("index", { txid: null, error: "Token distribution instantiated, please wait 30 seconds..." });
 
-        await slpFaucet.evenlyDistributeTokens(process.env.TOKENID!);
-        await sleep(5000);
-        await slpFaucet.evenlyDistributeBch();
+        try {
+            await slpFaucet.evenlyDistributeTokens(process.env.TOKENID!);
+        } catch (err) {
+            console.log(err);
+            res.render("index", { txid: null, error: err.message });
+            return;
+        }
+        
+        try {
+            await slpFaucet.evenlyDistributeBch();
+        } catch (err) {
+            console.log(err);
+            res.render("index", { txid: null, error: err.message });
+            return;
+        }
         slpFaucet.currentFaucetAddressIndex = 0;
+        res.render("index", { txid: null, error: "Token distribution instantiated..." });
         return;
     }
 

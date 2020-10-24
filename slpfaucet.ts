@@ -4,8 +4,6 @@ import { GrpcClient } from "grpc-bchrpc-node";
 import * as slpjs from "slpjs";
 import { BchdNetwork, BchdValidator, Utils } from "slpjs";
 
-const sp = require("synchronized-promise");
-
 const bitbox = new BITBOX();
 const client = new GrpcClient({url: "bchd.ny1.simpleledger.io" });
 const validator = new BchdValidator(client, console);
@@ -63,10 +61,18 @@ export class SlpFaucetHandler {
             } catch (_) { }
         });
 
+        if (tokenBalances.length === 0) {
+            throw Error("Token balance in faucet wallet is 0.");
+        }
+
         // add input BCH (non-token) UTXOs
         const bchBalances = balances.filter((i) => i.result.nonSlpUtxos.length > 0);
         bchBalances.map((i) => i.result.nonSlpUtxos.forEach((j) => j.wif = this.wifs[ i.address as any]));
         bchBalances.forEach((a) => a.result.nonSlpUtxos.forEach((txo) => utxos.push(txo)));
+
+        if (bchBalances.length === 0) {
+            throw Error("BCH balance in faucet wallet is 0.");
+        }
 
         const totalToken: BigNumber = tokenBalances.reduce((t, v) => t = t.plus(v.result.slpTokenBalances[tokenId]), new BigNumber(0));
         console.log("total token amount to distribute:", totalToken.toFixed());
@@ -87,11 +93,15 @@ export class SlpFaucetHandler {
         bchBalances.map((i) => i.result.nonSlpUtxos.forEach((j) => j.wif = this.wifs[ i.address as any]));
         bchBalances.forEach((a) => a.result.nonSlpUtxos.forEach((txo) => utxos.push(txo)));
 
+        if (bchBalances.length === 0) {
+            throw Error("BCH balance in faucet wallet is 0.");
+        }
+
         const totalBch = bchBalances.reduce((t, v) => t = t.plus(v.result.satoshis_available_bch), new BigNumber(0));
         const sendCost = this.network.slp.calculateSendCost(0, utxos.length, this.addresses.length, this.addresses[0], 1, false); // rough overestimate
         console.log("estimated send cost:", sendCost);
         console.log("total BCH to distribute:", totalBch.toFixed());
-        console.log("spread amount:", totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length + 1).toFixed());
+        console.log("spread amount:", totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length).toFixed());
         await this.increaseChainLength();
         return await this.network.simpleBchSend(Array(this.addresses.length).fill(totalBch.minus(sendCost).dividedToIntegerBy(this.addresses.length)), utxos, this.addresses, this.addresses[0]);
     }

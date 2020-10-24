@@ -29,7 +29,9 @@
     "express": "^4.15.3",
     "grpc-bchrpc-node": "^0.11.3",
     "request": "^2.81.0",
-    "slpjs": "^0.27.8",
-    "synchronized-promise": "^0.3.1"
+    "slpjs": "^0.27.8"
+  },
+  "devDependencies": {
+    "ts-node": "^9.0.0"
   }
 }
